@@ -1,0 +1,13 @@
+PROJECT_NAME     = "Project Name"
+# Where Doxygen looks for C/C++ sources. Point this at your project's
+# sources and delete the sample src/ file that ships with the template.
+INPUT            = src
+INPUT_ENCODING   = UTF-8
+RECURSIVE        = YES
+
+EXTRACT_ALL      = YES
+
+GENERATE_XML     = YES
+XML_OUTPUT       = doxygen-xml
+GENERATE_HTML    = NO
+GENERATE_LATEX   = NO

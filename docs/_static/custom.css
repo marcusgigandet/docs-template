@@ -1,0 +1,9 @@
+/* Custom overrides for the Furo theme. Edit this file for project-wide
+   styling tweaks. */
+
+/* Exhale generates API pages (docs/api/) with `.. contents::` directives,
+   which Furo flags with an error box. Furo already shows each page's
+   section TOC in the right sidebar, so hide the on-page contents block. */
+nav.contents {
+  display: none;
+}

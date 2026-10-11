@@ -1,0 +1,19 @@
+# Documentation site (Sphinx). Build targets (see Makefile):
+#   make deps    - create .venv and install these requirements
+#   make gettext - extract translatable strings into docs/gettext/
+#   make update  - refresh translation files under docs/locales/
+#   make local   - build all languages into pages-local/
+#   make pages   - build all languages into pages/ for deployment
+
+sphinx
+myst-parser
+furo
+sphinxcontrib-mermaid
+breathe
+exhale
+sphinx-autobuild
+sphinx-last-updated-by-git
+sphinx-intl
+
+# C++ docstrings also require the Doxygen binary: brew install doxygen
+# JavaScript docstrings are npm-based, not pip: see docs/code-reference.md

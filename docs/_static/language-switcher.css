@@ -1,0 +1,97 @@
+/* Language and version dropdowns (docs/_templates/page.html renders the
+   widgets; docs/_static/language-switcher.js pins them to <body> and
+   toggles the menus). Pinned to the bottom-right corner of the viewport;
+   the menus open upward from the toggle. */
+
+.docs-switchers {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+  right: max(1rem, env(safe-area-inset-right, 1rem));
+  display: flex;
+  gap: 0.5rem;
+  z-index: 200;
+}
+
+.docs-switcher {
+  position: relative;
+}
+
+.docs-switcher-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background-color: var(--color-background-primary);
+  color: var(--color-foreground-secondary);
+  border: 1px solid var(--color-background-border);
+  border-radius: 999px;
+  font-size: var(--font-size--small, 0.875rem);
+  font-family: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.docs-switcher-toggle:hover {
+  color: var(--color-foreground-primary);
+  border-color: var(--color-foreground-border);
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+.docs-switcher-toggle svg {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.docs-switcher-chevron {
+  transition: transform 0.15s ease;
+}
+
+.docs-switcher-toggle[aria-expanded="true"] .docs-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+.docs-switcher-menu {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 8rem;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-background-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+}
+
+.docs-switcher-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.375rem;
+  color: var(--color-foreground-secondary);
+  font-size: var(--font-size--small, 0.875rem);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.docs-switcher-item:hover {
+  background-color: var(--color-background-hover);
+  color: var(--color-foreground-primary);
+}
+
+.docs-switcher-item[aria-current="page"] {
+  color: var(--color-brand-primary);
+  font-weight: 600;
+}
+
+.docs-switcher-item svg {
+  width: 1em;
+  height: 1em;
+}

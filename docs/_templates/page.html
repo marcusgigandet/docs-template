@@ -1,0 +1,75 @@
+{# Language and version dropdowns, rendered here so the target URLs can be
+   computed from `pagename`. The data comes from html_context in conf.py,
+   overridden per build by the Makefile via -A flags: `docs_version` is the
+   current build's version id, `docs_versions` all available versions,
+   `docs_languages` / `docs_language_names` the language list (comma-
+   separated). "dev" is special: it is the working-tree build served at the
+   site root, while every other version (git tag) is served from a <tag>/
+   subdirectory; English is each version's root, other languages live one
+   level deeper. docs/_static/language-switcher.js pins the widget cluster
+   to the bottom-right corner and handles open/close interactions. #}
+{% extends "!page.html" %}
+
+{% block announcement %}
+  {# Directory depth of the current page below the site root: the "dev"
+     build sits at the root; each released version (git tag) and each
+     non-English language adds one level. #}
+  {%- set depth = (pagename.split('/')|length - 1)
+                  + (0 if language == 'en' else 1)
+                  + (0 if docs_version == 'dev' else 1) -%}
+  {%- set rel = '../' * depth -%}
+  {%- set vprefix = '' if docs_version == 'dev' else docs_version ~ '/' -%}
+  {%- set lprefix = '' if language == 'en' else language ~ '/' -%}
+  {%- set langs = docs_languages.split(',') -%}
+  {%- set lang_names = docs_language_names.split(',') -%}
+  {%- set versions = docs_versions.split(',') -%}
+  <div class="docs-switchers">
+    <div class="docs-switcher">
+      <button type="button" class="docs-switcher-toggle"
+              aria-haspopup="true" aria-expanded="false" aria-label="Language">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.7 4 5.7 4 9s-1.5 6.3-4 9c-2.5-2.7-4-5.7-4-9s1.5-6.3 4-9Z"/></svg>
+        {%- for i in range(langs|length) -%}
+          {%- if langs[i] == language -%}<span>{{ lang_names[i] }}</span>{%- endif -%}
+        {%- endfor -%}
+        <svg class="docs-switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <ul class="docs-switcher-menu" hidden>
+        {%- for i in range(langs|length) -%}
+          {%- set code = langs[i] -%}
+          <li>
+            <a class="docs-switcher-item" href="{{ rel }}{{ vprefix }}{{ '' if code == 'en' else code ~ '/' }}{{ pagename }}.html"
+               lang="{{ code }}"{% if code == language %} aria-current="page"{% endif %}>
+              {{ lang_names[i] }}
+              {%- if code == language -%}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+              {%- endif -%}
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+    {%- if versions|length > 1 -%}
+      <div class="docs-switcher">
+        <button type="button" class="docs-switcher-toggle"
+                aria-haspopup="true" aria-expanded="false" aria-label="Version">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg>
+          <span>{{ docs_version }}</span>
+          <svg class="docs-switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <ul class="docs-switcher-menu" hidden>
+          {%- for v in versions -%}
+            <li>
+              <a class="docs-switcher-item" href="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}{{ pagename }}.html"
+                 {% if v == docs_version %}aria-current="page"{% endif %}>
+                {{ v }}
+                {%- if v == docs_version -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+                {%- endif -%}
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+  </div>
+{% endblock announcement %}

@@ -7,7 +7,7 @@ namespace example {
 /// Adds two integers.
 ///
 /// Sample documented function: shows up in the generated C++ reference
-/// once Doxygen runs over src/ (`make local` does this automatically).
+/// once Doxygen runs over src/ (`make pages` does this automatically).
 int add(int a, int b);
 
 }  // namespace example

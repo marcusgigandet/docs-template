@@ -51,7 +51,7 @@ LANG_FLAGS := -A docs_languages=$(LANGUAGES_CSV) \
 DEV_VERSION_FLAGS := -A docs_versions=dev
 ALL_VERSION_FLAGS := -A docs_versions=$(ALL_VERSIONS)
 
-.PHONY: deps doxygen gettext update local live versions pages clean
+.PHONY: deps doxygen gettext update live linkcheck versions pages clean
 
 deps: $(SPHINX)
 
@@ -73,6 +73,12 @@ gettext: deps doxygen
 update: gettext
 	$(INTL) update -p docs/gettext -d docs/locales $(addprefix -l ,$(filter-out en,$(LANGUAGES)))
 	@cd docs && ../$(INTL) build
+
+# Check external links in the documentation. The linkcheck builder
+# exits non-zero on broken links; CI runs this weekly
+# (.github/workflows/docs-linkcheck.yml).
+linkcheck: deps doxygen
+	$(SPHINX) -b linkcheck docs docs/linkcheck
 
 live: deps doxygen
 	$(LIVE) --port 8000 --watch README.md --watch src -D release=dev $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
@@ -121,7 +127,27 @@ pages: deps doxygen versions
 		  echo '];'; \
 		} > "$$site/docs-pages.js"; \
 	done
+# Sitemap and robots.txt for the site root, written after the builds.
+# Only indexable pages are listed: released versions are marked
+# robots-noindex by the html-page-context hook in docs/conf.py, so
+# their pages stay out of the sitemap, while the "dev" build's
+# languages (<lang>/) are in. The URLs match the pages' canonical URLs
+# (html_baseurl from docs/conf.py plus the language prefix). The 404
+# and search pages are excluded — both are noindex. robots.txt points
+# crawlers at the sitemap.
+	@base=`$(VENV)/bin/python -c "import sys; sys.path.insert(0, 'docs'); import conf; print(conf.html_baseurl.rstrip('/'))"`; \
+	{ echo '<?xml version="1.0" encoding="UTF-8"?>'; \
+	  echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'; \
+	  find docs/pages -name '*.html' \
+	    | grep -vE "^docs/pages/($(VERSIONS_ALT))/" \
+	    | grep -vE "/(404|search)\.html$$" \
+	    | sort \
+	    | sed -e "s|^docs/pages/|  <url><loc>$$base/|" -e 's|$$|</loc></url>|'; \
+	  echo '</urlset>'; \
+	} > docs/pages/sitemap.xml; \
+	printf 'User-agent: *\nSitemap: %s/sitemap.xml\n' "$$base" > docs/pages/robots.txt
+	@for tag in $(VERSIONS); do rm -f docs/pages/$$tag/sitemap.xml docs/pages/$$tag/robots.txt; done
 
 clean:
-	@rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/.versions
+	@rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/linkcheck docs/.versions
 	git worktree prune

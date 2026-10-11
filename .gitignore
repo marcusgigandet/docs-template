@@ -62,6 +62,7 @@ _build/
 docs/doxygen-xml/
 docs/api/
 docs/gettext/
+docs/linkcheck/
 docs/pages/
 docs/pages-local/
 docs/.versions/

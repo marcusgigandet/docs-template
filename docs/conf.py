@@ -42,6 +42,23 @@ dev_banner = {
     "fr": "Version de développement — construite depuis l'arborescence de travail ; le contenu peut changer.",
 }
 
+# Released-version builds show this notice in the announcement bar
+# instead (docs/_templates/page.html): the reader may be on an
+# outdated release, with a link to the same page in the current
+# ("dev") build at the site root. Template strings, not covered by
+# gettext — one entry per language in docs_languages below.
+# "{version}" is replaced with the version id at render time.
+old_version_banner = {
+    "en": {
+        "message": "You are reading the documentation for {version}, which may be out of date.",
+        "latest": "See the current version",
+    },
+    "fr": {
+        "message": "Vous lisez la documentation de la version {version}, qui peut être obsolète.",
+        "latest": "Voir la version actuelle",
+    },
+}
+
 # Notice shown by the version switcher when the target page does not
 # exist in the target version (docs/_static/language-switcher.js). Not
 # covered by gettext either; "{version}" is replaced with the target
@@ -65,6 +82,7 @@ html_context = {
     "docs_languages": "en,fr",
     "docs_language_names": "English,Français",
     "dev_banner": dev_banner,
+    "old_version_banner": old_version_banner,
     "switcher_notice": switcher_notice,
     # Project icon in the sidebar (docs/_templates/sidebar/brand.html):
     # a path under docs/, e.g. "_static/icon.svg". Leave None for a
@@ -131,7 +149,8 @@ mermaid_version = "12.1.0"
 
 html_theme = "furo"
 # Public URL of the deployed site (GitHub Pages), used for the canonical
-# URL / sitemap of built pages. Set to https://<user>.github.io/<repo>/.
+# URL of built pages (see the html-page-context hook at the bottom of
+# this file). Set to https://<user>.github.io/<repo>/.
 html_baseurl = "https://example.github.io/project/"
 templates_path = ["_templates"]
 html_static_path = ["_static"]
@@ -140,7 +159,7 @@ html_static_path = ["_static"]
 # git tag out into docs/.versions/ while building it. Keep all of it
 # out of the document set — Sphinx otherwise re-discovers built files
 # (e.g. copied LICENSE.md assets) on the next build.
-exclude_patterns = ["pages/*", "pages-local/*", ".versions/*"]
+exclude_patterns = ["pages/*", "pages-local/*", ".versions/*", "linkcheck/*"]
 html_css_files = ["language-switcher.css", "custom.css"]
 html_js_files = ["language-switcher.js"]
 
@@ -177,3 +196,37 @@ html_theme_options = {
         },
     ],
 }
+
+def _page_meta(app, pagename, templatename, context, doctree):
+    version = context.get("docs_version", "dev")
+    language = app.config.language or "en"
+
+    if app.config.html_baseurl:
+        prefix = "" if version == "dev" else f"{version}/"
+
+        if language != "en":
+            prefix += f"{language}/"
+
+        context["pageurl"] = (
+            app.config.html_baseurl.rstrip("/")
+            + "/"
+            + prefix
+            + pagename
+            + ".html"
+        )
+
+    if pagename == "404":
+        context["pageurl"] = None
+        context["metatags"] = (
+            context.get("metatags", "")
+            + '<meta name="robots" content="noindex">\n'
+        )
+    elif version != "dev" and pagename != "search":
+        context["metatags"] = (
+            context.get("metatags", "")
+            + '<meta name="robots" content="noindex">\n'
+        )
+
+
+def setup(app):
+    app.connect("html-page-context", _page_meta)

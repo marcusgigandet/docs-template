@@ -11,13 +11,10 @@
 {% extends "!page.html" %}
 
 {% block announcement %}
-  {# Working-tree ("dev") builds carry a notice that the content is
-     unreleased; released builds (git tags) render nothing extra. #}
-  {%- if docs_version == 'dev' -%}
-    <div class="dev-version-note">
-      {{ dev_banner.get(language, dev_banner['en']) }}
-    </div>
-  {%- endif -%}
+  {# Announcement bar: working-tree ("dev") builds carry a notice that
+     the content is unreleased; released builds (git tags) instead
+     link the same page in the current ("dev") documentation at the
+     site root. #}
   {# Directory depth of the current page below the site root: the "dev"
      build sits at the root; each released version (git tag) and each
      non-English language adds one level. #}
@@ -27,6 +24,17 @@
   {%- set rel = '../' * depth -%}
   {%- set vprefix = '' if docs_version == 'dev' else docs_version ~ '/' -%}
   {%- set lprefix = '' if language == 'en' else language ~ '/' -%}
+  {%- if docs_version == 'dev' -%}
+    <div class="dev-version-note">
+      {{ dev_banner.get(language, dev_banner['en']) }}
+    </div>
+  {%- else -%}
+    {%- set old_banner = old_version_banner.get(language, old_version_banner['en']) -%}
+    <div class="old-version-note">
+      {{ old_banner.message.replace('{version}', docs_version) }}
+      <a href="{{ rel }}{{ lprefix }}{{ pagename }}.html">{{ old_banner.latest }}</a>
+    </div>
+  {%- endif -%}
   {%- set langs = docs_languages.split(',') -%}
   {%- set lang_names = docs_language_names.split(',') -%}
   {%- set versions = docs_versions.split(',') -%}

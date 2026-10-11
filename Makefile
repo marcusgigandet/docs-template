@@ -2,17 +2,17 @@
 #   make deps    - create .venv and install requirements
 #   make gettext - extract translatable strings into docs/gettext/
 #   make update  - refresh .po files under docs/locales/
-#   make local   - build the working tree ("dev") into pages-local/
 #   make live    - live-rebuild preview (English) at http://localhost:8000
-#   make versions- build one site per released version (git tag) into pages/<tag>/
-#   make pages   - "dev" at the pages/ root plus every released version
+#   make versions- build one site per released version (git tag) into docs/pages/<tag>/
+#   make pages   - "dev" at the docs/pages/ root plus every released version
 #   make clean   - remove build output
 #
-# Site layout: pages/ holds the working-tree ("dev") docs at the root,
-# pages/<lang>/ for non-English languages of the dev build, and
-# pages/<tag>/ for each released version, built from that tag's own docs
-# (including its Doxygen XML) via a temporary git worktree. "dev" is
-# special-cased as the site root in the docs templates and here.
+# Site layout: docs/pages/ holds the working-tree ("dev") docs at the
+# root, docs/pages/<lang>/ for non-English languages of the dev build,
+# and docs/pages/<tag>/ for each released version, built from that tag's
+# own docs (including its Doxygen XML) via a temporary git worktree under
+# docs/.versions/. "dev" is special-cased as the site root in the docs
+# templates and here.
 
 VENV    := .venv
 PIP     := $(VENV)/bin/pip
@@ -71,38 +71,32 @@ update: gettext
 	$(INTL) update -p docs/gettext -d docs/locales $(addprefix -l ,$(filter-out en,$(LANGUAGES)))
 	cd docs && ../$(INTL) build
 
-local: deps doxygen
-	$(SPHINX) -b html $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local
-	for lang in $(filter-out en,$(LANGUAGES)); do \
-		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local/$$lang; \
-	done
-
 live: deps doxygen
-	$(LIVE) --port 8000 --watch README.md --watch src $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local
+	$(LIVE) --port 8000 --watch README.md --watch src $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
 
 # One site per released version, built from that tag's own checkout so
-# each version's docs match its release. Worktrees land in .versions/
+# each version's docs match its release. Worktrees land in docs/.versions/
 # and are removed again; the per-tag Doxygen XML never touches the
-# working tree's doxygen-xml/.
+# working tree's docs/doxygen-xml/.
 versions: deps
-	mkdir -p pages
+	mkdir -p docs/pages
 	for tag in $(VERSIONS); do \
-		worktree=.versions/$$tag; \
+		worktree=docs/.versions/$$tag; \
 		git worktree add --detach $$worktree $$tag || continue; \
 		( cd $$worktree && $(DOXYGEN) Doxyfile ); \
-		$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag; \
+		$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag; \
 		for lang in $(filter-out en,$(LANGUAGES)); do \
-			$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag/$$lang; \
+			$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag/$$lang; \
 		done; \
 		git worktree remove --force $$worktree; \
 	done
 
 pages: deps doxygen versions
-	$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs pages
+	$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages
 	for lang in $(filter-out en,$(LANGUAGES)); do \
-		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs pages/$$lang; \
+		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages/$$lang; \
 	done
 
 clean:
-	rm -rf pages-local pages doxygen-xml docs/api docs/gettext .versions
+	rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/.versions
 	git worktree prune

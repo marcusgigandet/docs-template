@@ -57,12 +57,12 @@ vcpkg_installed/
 coverage/
 lcov-report/
 
-# --- Documentation ---
+# --- Documentation (generated output lives under docs/) ---
 _build/
-doxygen-xml/
+docs/doxygen-xml/
 docs/api/
-pages/
-pages-local/
 docs/gettext/
-.versions/
+docs/pages/
+docs/pages-local/
+docs/.versions/
 *.mo

@@ -7,3 +7,13 @@
 nav.contents {
   display: none;
 }
+
+/* Branding: uncomment and adjust to match your project's colors. These
+   are Furo's accent variables (links, active sidebar items, switcher
+   highlights); see Furo's documentation for the full variable list.
+body {
+  --color-brand-primary: #0a4bff;
+  --color-brand-visited: #872ee0;
+}
+*/
+

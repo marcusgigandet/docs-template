@@ -1,0 +1,120 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Copyright
+# This file is distributed under the same license as the Project Name
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Project Name \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-11 12:14-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../README.md:2
+msgid "Docs Template"
+msgstr ""
+
+#: ../../README.md:4
+msgid ""
+"Sphinx documentation template for C++ projects: Markdown (MyST) pages, "
+"Doxygen/Breathe/Exhale C++ reference, multi-language support via gettext,"
+" and multi-version site builds from git tags. Use this repo as a template"
+" (\"Use this template\" on GitHub, or clone and strip the `.git` "
+"directory) to get a configured docs site for a new project in minutes."
+msgstr ""
+
+#: ../../README.md:10
+msgid "Quick start"
+msgstr ""
+
+#: ../../README.md:17
+msgid ""
+"`make live` serves a live-rebuild preview at `http://localhost:8000` "
+"(built into `pages-local/`); `make pages` builds the deployable multi-"
+"version site into `pages/` — released-version sites (`pages/<tag>/`) only"
+" exist there, so the preview's version switcher offers just `dev`. The "
+"Doxygen binary is required for the C++ reference (`brew install doxygen` "
+"on macOS)."
+msgstr ""
+
+#: ../../README.md:24
+msgid "Configure your project"
+msgstr ""
+
+#: ../../README.md:26
+msgid "Work through this checklist after cloning from the template:"
+msgstr ""
+
+#: ../../README.md:28
+msgid ""
+"**Project identity** — set `project`, `author`, `copyright`, and "
+"`release` in `docs/conf.py`."
+msgstr ""
+
+#: ../../README.md:30
+msgid ""
+"**Site URL** — set `html_baseurl` in `docs/conf.py` to your deployed site"
+" (for GitHub Pages: `https://<user>.github.io/<repo>/`), and the "
+"`source_repository` / `footer_icons` URLs in `docs/conf.py` to your "
+"repository — they drive the header \"edit this page\" icon and the footer"
+" link. Branding goes in `docs/conf.py` (`html_logo`, `html_favicon`) and "
+"`docs/_static/custom.css` (accent colors)."
+msgstr ""
+
+#: ../../README.md:36
+msgid "**Doxygen project name** — set `PROJECT_NAME` in `Doxyfile`."
+msgstr ""
+
+#: ../../README.md:37
+msgid ""
+"**C++ sources** — point `INPUT` in `Doxyfile` at your sources, then "
+"replace the sample `src/example.hpp` (or delete `src/` and adjust "
+"`INPUT`). The C++ reference is regenerated automatically on every build; "
+"see `docs/code-reference.md`."
+msgstr ""
+
+#: ../../README.md:41
+msgid ""
+"**Languages** — edit `LANGUAGES` and `LANG_NAMES` in the `Makefile`, the "
+"`docs_languages` / `docs_language_names` defaults and the `dev_banner` "
+"translations in `docs/conf.py`, then run `make update` to generate `.po` "
+"files under `docs/locales/` and translate them. English needs no `.po` "
+"files; untranslated strings fall back to English."
+msgstr ""
+
+#: ../../README.md:46
+msgid ""
+"**Pages** — write documentation as Markdown in `docs/`. The template "
+"ships stubs for the common pages (getting started, architecture with a "
+"mermaid diagram, changelog); fill them in and add new pages to the "
+"toctree in `docs/index.md`."
+msgstr ""
+
+#: ../../README.md:50
+msgid ""
+"**Deployment** — deploy `pages/` (e.g. a GitHub Pages workflow that runs "
+"`make pages` and publishes the output). Released versions come from `v*` "
+"git tags; the working tree is published as the `dev` version at the site "
+"root."
+msgstr ""
+
+#: ../../README.md:55
+msgid "Layout"
+msgstr ""
+
+#: ../../README.md:74
+msgid ""
+"Generated at build time (git-ignored): `doxygen-xml/`, `docs/api/`, "
+"`docs/gettext/`, `pages/`, `pages-local/`, `.versions/`."
+msgstr ""
+

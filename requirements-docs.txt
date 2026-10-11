@@ -13,6 +13,7 @@ breathe
 exhale
 sphinx-autobuild
 sphinx-last-updated-by-git
+sphinx-copybutton
 sphinx-intl
 
 # C++ docstrings also require the Doxygen binary: brew install doxygen

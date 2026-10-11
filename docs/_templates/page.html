@@ -11,6 +11,13 @@
 {% extends "!page.html" %}
 
 {% block announcement %}
+  {# Working-tree ("dev") builds carry a notice that the content is
+     unreleased; released builds (git tags) render nothing extra. #}
+  {%- if docs_version == 'dev' -%}
+    <div class="dev-version-note">
+      {{ dev_banner.get(language, dev_banner['en']) }}
+    </div>
+  {%- endif -%}
   {# Directory depth of the current page below the site root: the "dev"
      build sits at the root; each released version (git tag) and each
      non-English language adds one level. #}

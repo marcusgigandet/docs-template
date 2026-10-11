@@ -4,5 +4,8 @@
 ```{toctree}
 :hidden:
 
+getting-started
+architecture
+changelog
 code-reference
 ```

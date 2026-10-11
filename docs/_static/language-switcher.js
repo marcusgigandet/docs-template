@@ -47,7 +47,9 @@
   if (cluster) {
     document.body.appendChild(cluster);
     var announcement = document.querySelector(".announcement");
-    if (announcement) {
+    // Remove the announcement bar only when the switchers were its sole
+    // content; the development-version notice (page.html) keeps it.
+    if (announcement && !announcement.textContent.trim()) {
       announcement.remove();
     }
   }

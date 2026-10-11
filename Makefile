@@ -37,6 +37,9 @@ comma := ,
 LANGUAGES_CSV := $(subst $(space),$(comma),$(LANGUAGES))
 VERSIONS_CSV  := $(subst $(space),$(comma),$(VERSIONS))
 ALL_VERSIONS  := dev$(if $(VERSIONS_CSV),$(comma)$(VERSIONS_CSV))
+# Released versions as a grep alternation (manifest generation below);
+# "___" never matches a path, for repositories without tags yet.
+VERSIONS_ALT  := $(if $(VERSIONS_CSV),$(subst $(comma),|,$(VERSIONS_CSV)),___)
 
 # Switcher data injected into every build (docs/_templates/page.html).
 # The language flags apply everywhere; the version list depends on the
@@ -100,8 +103,11 @@ pages: deps doxygen versions
 # Page manifests for the switcher's existence check (see
 # docs/_static/language-switcher.js): one docs-pages.js per version
 # root, listing every built page relative to that root, all
-# languages. "dev" is the site root; language subdirectories of the
-# dev site are skipped (their pages belong to the dev manifest).
+# languages, recursively — including nested pages such as api/.
+# "dev" is the site root; its manifest excludes the released-version
+# subdirectories, which carry their own. Language subdirectories of
+# the dev site are skipped as sites (their pages belong to the dev
+# manifest).
 	@for site in docs/pages docs/pages/*; do \
 		[ -f "$$site/index.html" ] || continue; \
 		ver=$${site#docs/pages}; ver=$${ver#/}; \
@@ -109,11 +115,9 @@ pages: deps doxygen versions
 		ver=$${ver:-dev}; \
 		{ echo 'window.docsPages = window.docsPages || {};'; \
 		  printf 'window.docsPages["%s"] = [' "$$ver"; \
-		  { find "$$site" -maxdepth 1 -name '*.html'; \
-		    for lang in $(filter-out en,$(LANGUAGES)); do \
-		      find "$$site/$$lang" -name '*.html'; \
-		    done; \
-		  } | sed -e "s|^$$site/|  \"|" -e 's|$$|",|'; \
+		  find "$$site" -name '*.html' \
+		    | grep -vE "^$$site/($(VERSIONS_ALT))/" \
+		    | sed -e "s|^$$site/|  \"|" -e 's|$$|",|'; \
 		  echo '];'; \
 		} > "$$site/docs-pages.js"; \
 	done

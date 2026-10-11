@@ -31,8 +31,9 @@ gettext_compact = False
 # Makefile overrides these per build with -A flags (see its build loops);
 # these defaults only apply to direct sphinx-build / sphinx-autobuild
 # runs (e.g. `make live`), which build the working tree as version "dev".
-# "dev" is special-cased as the site root; released versions (git tags)
-# are served from <tag>/ subdirectories.
+# Site layout: the latest release (newest git tag) is the site root —
+# the default documentation; "dev" (the working-tree build) and every
+# older tag are served from their own <version>/ subdirectories.
 # Working-tree ("dev") builds show this notice in the announcement bar
 # (see docs/_templates/page.html). Sphinx's gettext pipeline only covers
 # document sources, not templates, so the per-language text lives here:
@@ -42,12 +43,11 @@ dev_banner = {
     "fr": "Version de développement — construite depuis l'arborescence de travail ; le contenu peut changer.",
 }
 
-# Released-version builds show this notice in the announcement bar
-# instead (docs/_templates/page.html): the reader may be on an
-# outdated release, with a link to the same page in the current
-# ("dev") build at the site root. The latest git tag
-# (docs_latest_version, set by the Makefile) shows no banner.
-# Template strings, not covered by
+# Builds of releases older than the latest show this notice in the
+# announcement bar instead (docs/_templates/page.html), with a link to
+# the same page in the latest release at the site root
+# (docs_root_version). The latest release (docs_latest_version, set
+# by the Makefile) shows no banner. Template strings, not covered by
 # gettext — one entry per language in docs_languages below.
 # "{version}" is replaced with the version id at render time.
 old_version_banner = {
@@ -96,6 +96,15 @@ html_context = {
     # default only covers direct sphinx-build runs, which build the
     # working tree as "dev" and never show it either.
     "docs_latest_version": "dev",
+    # The version served at the site root, passed by the Makefile via
+    # -A: the latest git tag for full builds, so it is the default
+    # documentation. This default ("dev") covers direct sphinx-build /
+    # sphinx-autobuild runs (e.g. `make live`), which serve the
+    # working tree at the preview root. The templates use it instead
+    # of special-casing "dev" for link prefixes and directory depth,
+    # and the html-page-context hook below keys canonical URLs and
+    # robots indexing off it.
+    "docs_root_version": "dev",
     "docs_languages": "en,fr",
     "docs_language_names": "English,Français",
     "dev_banner": dev_banner,
@@ -217,10 +226,16 @@ html_theme_options = {
 
 def _page_meta(app, pagename, templatename, context, doctree):
     version = context.get("docs_version", "dev")
+    root = context.get("docs_root_version", "dev")
     language = app.config.language or "en"
 
+    # The root version (latest release) serves its pages at the site
+    # root; every other version ("dev", older tags) from its own
+    # subdirectory. Only the root version's pages are indexable — it
+    # is the default documentation; the others may duplicate or
+    # trail it.
     if app.config.html_baseurl:
-        prefix = "" if version == "dev" else f"{version}/"
+        prefix = "" if version == root else f"{version}/"
 
         if language != "en":
             prefix += f"{language}/"
@@ -239,7 +254,7 @@ def _page_meta(app, pagename, templatename, context, doctree):
             context.get("metatags", "")
             + '<meta name="robots" content="noindex">\n'
         )
-    elif version != "dev" and pagename != "search":
+    elif version != root and pagename != "search":
         context["metatags"] = (
             context.get("metatags", "")
             + '<meta name="robots" content="noindex">\n'

@@ -2,31 +2,34 @@
    computed from `pagename`. The data comes from html_context in conf.py,
    overridden per build by the Makefile via -A flags: `docs_version` is the
    current build's version id, `docs_versions` all available versions,
+   `docs_root_version` the version served at the site root (the latest
+   git tag for full builds; "dev" for live previews / direct builds),
    `docs_languages` / `docs_language_names` the language list (comma-
-   separated). "dev" is special: it is the working-tree build served at the
-   site root, while every other version (git tag) is served from a <tag>/
-   subdirectory; English is each version's root, other languages live one
-   level deeper. The language menu is rendered below; the version panel
-   lives in docs/_templates/components/version-switcher.html (newest
-   first, filterable, for many versions). docs/_static/language-switcher.js
-   pins the widget cluster to the bottom-right corner and handles
-   open/close interactions. #}
+   separated). The root version's pages sit at the site root; every
+   other version ("dev", older tags) is served from a <version>/
+   subdirectory. English is each version's root, other languages live
+   one level deeper. The language menu is rendered below; the version
+   panel lives in docs/_templates/components/version-switcher.html
+   (newest first, filterable, for many versions).
+   docs/_static/language-switcher.js pins the widget cluster to the
+   bottom-right corner and handles open/close interactions. #}
 {% extends "!page.html" %}
 
 {% block announcement %}
   {# Announcement bar: working-tree ("dev") builds carry a notice that
-     the content is unreleased; released builds (git tags) other than
-     the latest instead link the same page in the current ("dev")
-     documentation at the site root. The latest tag
-     (docs_latest_version) shows no banner. #}
-  {# Directory depth of the current page below the site root: the "dev"
-     build sits at the root; each released version (git tag) and each
-     non-English language adds one level. #}
+     the content is unreleased; builds of releases older than the
+     latest instead link the same page in the latest release at the
+     site root. The latest release (docs_latest_version) shows no
+     banner. #}
+  {# Directory depth of the current page below the site root: the
+     root version's build sits at the root; each other version
+     ("dev", older tags) and each non-English language adds one
+     level. #}
   {%- set depth = (pagename.split('/')|length - 1)
                   + (0 if language == 'en' else 1)
-                  + (0 if docs_version == 'dev' else 1) -%}
+                  + (0 if docs_version == docs_root_version else 1) -%}
   {%- set rel = '../' * depth -%}
-  {%- set vprefix = '' if docs_version == 'dev' else docs_version ~ '/' -%}
+  {%- set vprefix = '' if docs_version == docs_root_version else docs_version ~ '/' -%}
   {%- set lprefix = '' if language == 'en' else language ~ '/' -%}
   {%- if docs_version == 'dev' -%}
     <div class="dev-version-note">

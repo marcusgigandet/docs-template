@@ -243,8 +243,11 @@
   // GitHub Pages serves the root 404.html for any missing path, so this
   // runs on the requested (missing) URL. A page often 404s across
   // versions because it was added after (or removed before) that
-  // version, so offer targeted links: the same page in the "dev" build,
-  // the home page of the requested version/language, and the dev home.
+  // version, so offer targeted links: the same page in the "dev" build
+  // (served under dev/), the home page of the requested
+  // version/language, and the dev home. A missing page at the site
+  // root (the latest release, which has no version prefix) just links
+  // home.
   var notfound = document.getElementById("notfound-links");
   if (notfound && window.docsMeta) {
     var segments = location.pathname.replace(/\/+$/, "").split("/").filter(Boolean);
@@ -253,17 +256,19 @@
       return l !== "en";
     });
 
-    // Locate a leading released-version segment ("dev" pages live at
-    // the site root, so "dev" is never a prefix), optionally followed
-    // by a non-English language segment. Segments before them (e.g. a
-    // GitHub Pages project subpath) and after them (the page path) are
-    // left in place, so the links below stay inside the site.
+    // Locate a leading version segment — any version id can be one:
+    // the latest release is served at the site root (so it never
+    // appears as a prefix), while "dev" and older tags live under
+    // their own subdirectories — optionally followed by a non-English
+    // language segment. Segments before them (e.g. a GitHub Pages
+    // project subpath) and after them (the page path) are left in
+    // place, so the links below stay inside the site.
     var version = null;
     var lang = null;
     var p = 0;
     var page = segments.join("/");
     for (var i = 0; i < segments.length; i++) {
-      if (versions.indexOf(segments[i]) !== -1 && segments[i] !== "dev") {
+      if (versions.indexOf(segments[i]) !== -1) {
         version = segments[i];
         p = 1;
         if (i + 1 < segments.length && langs.indexOf(segments[i + 1]) !== -1) {
@@ -282,12 +287,14 @@
     var langPrefix = lang ? lang + "/" : "";
 
     var links = [];
-    if (version && page) {
-      links.push([rel + langPrefix + page, "View this page in the development version"]);
+    if (version && page && version !== "dev") {
+      links.push([rel + "dev/" + langPrefix + page, "View this page in the development version"]);
     }
     if (version) {
       links.push([rel + version + "/" + langPrefix + "index.html", version + " documentation home"]);
-      links.push([rel + langPrefix + "index.html", "Development documentation home"]);
+      if (version !== "dev") {
+        links.push([rel + "dev/" + langPrefix + "index.html", "Development documentation home"]);
+      }
     } else {
       links.push(["index.html", "Home page"]);
     }

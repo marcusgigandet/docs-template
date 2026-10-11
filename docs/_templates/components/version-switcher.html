@@ -1,0 +1,59 @@
+{# Version switcher panel (included from docs/_templates/page.html;
+   data comes from html_context in docs/conf.py, overridden per build by
+   the Makefile via -A flags). Versions are listed newest-first — "dev"
+   (the working-tree build at the site root) first, then every released
+   version newest to oldest — so the most recent release stays near the
+   top however many versions exist. The current version carries a
+   checkmark; the latest release (docs_latest_version) a "latest" badge.
+   Past a handful of versions (more than 8) the panel becomes scrollable
+   with a filter box: docs/_static/language-switcher.js filters entries
+   on input and centers the current version on open. The filter and
+   badge strings are not covered by gettext (template strings) — one
+   entry per language in docs_languages, configured as version_labels
+   in docs/conf.py. #}
+{%- set versions = docs_versions.split(',') -%}
+{%- set labels = version_labels.get(language, version_labels['en']) -%}
+{%- if versions|length > 1 -%}
+  {%- set released = versions | reject('equalto', 'dev') | list -%}
+  {%- set ordered = (['dev'] + (released | reverse | list)) if 'dev' in versions else (released | reverse | list) -%}
+  <div class="docs-switcher docs-switcher--version">
+    <button type="button" class="docs-switcher-toggle"
+            aria-haspopup="true" aria-expanded="false" aria-label="Version">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg>
+      <span>{{ docs_version }}</span>
+      {%- if docs_version == docs_latest_version -%}
+        <span class="docs-switcher-badge">{{ labels.latest }}</span>
+      {%- endif -%}
+      <svg class="docs-switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="docs-switcher-menu docs-switcher-menu--version" hidden>
+      {%- if versions|length > 8 -%}
+        <input class="docs-switcher-filter" type="search"
+               placeholder="{{ labels.filter }}" aria-label="{{ labels.filter }}"
+               autocomplete="off">
+      {%- endif -%}
+      <ul class="docs-switcher-version-list">
+        {%- for v in ordered -%}
+          <li>
+            <a class="docs-switcher-item" href="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}{{ pagename }}.html"
+               data-manifest="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}docs-pages.js"
+               data-version="{{ v }}"
+               data-page="{{ lprefix }}{{ pagename }}.html"
+               data-fallback="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}index.html"
+               {% if v == docs_version %}aria-current="page"{% endif %}>
+              <span>{{ v }}</span>
+              <span class="docs-switcher-item-meta">
+                {%- if v == docs_latest_version -%}
+                  <span class="docs-switcher-badge">{{ labels.latest }}</span>
+                {%- endif -%}
+                {%- if v == docs_version -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+                {%- endif -%}
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+{%- endif -%}

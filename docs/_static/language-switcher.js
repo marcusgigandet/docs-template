@@ -10,8 +10,27 @@
   var widgets = document.querySelectorAll(".docs-switcher");
 
   function setOpen(widget, open) {
-    widget.querySelector(".docs-switcher-menu").hidden = !open;
+    var menu = widget.querySelector(".docs-switcher-menu");
+    menu.hidden = !open;
     widget.querySelector(".docs-switcher-toggle").setAttribute("aria-expanded", String(open));
+    if (!open) {
+      return;
+    }
+    // Long version lists (docs/_templates/components/
+    // version-switcher.html): focus the filter box if the panel has
+    // one, and center the current version so the list starts nearby
+    // even when it scrolls.
+    var filter = menu.querySelector(".docs-switcher-filter");
+    if (filter) {
+      filter.focus();
+    }
+    var current = menu.querySelector('.docs-switcher-item[aria-current="page"]');
+    if (current && menu.scrollHeight > menu.clientHeight) {
+      menu.scrollTop = Math.max(
+        0,
+        current.offsetTop - menu.clientHeight / 2 + current.offsetHeight / 2
+      );
+    }
   }
 
   widgets.forEach(function (widget) {
@@ -175,6 +194,22 @@
           location.href = href;
         }
       );
+    });
+  });
+
+  // The version panel's filter box (docs/_templates/components/
+  // version-switcher.html renders it once there are many versions):
+  // typing hides non-matching entries. Entries match on their version
+  // id (data-version), not the rendered label or badge text.
+  document.querySelectorAll(".docs-switcher-filter").forEach(function (input) {
+    input.addEventListener("input", function () {
+      var query = input.value.trim().toLowerCase();
+      input.closest(".docs-switcher-menu")
+        .querySelectorAll(".docs-switcher-item")
+        .forEach(function (item) {
+          var version = (item.getAttribute("data-version") || "").toLowerCase();
+          item.closest("li").hidden = query !== "" && version.indexOf(query) === -1;
+        });
     });
   });
 

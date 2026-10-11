@@ -9,10 +9,11 @@
 #
 # Site layout: docs/pages/ holds the working-tree ("dev") docs at the
 # root, docs/pages/<lang>/ for non-English languages of the dev build,
-# and docs/pages/<tag>/ for each released version, built from that tag's
-# own docs (including its Doxygen XML) via a temporary git worktree under
-# docs/.versions/. "dev" is special-cased as the site root in the docs
-# templates and here.
+# and docs/pages/<tag>/ for each released version, built from that
+# tag's content (including its Doxygen XML) via a temporary git
+# worktree under docs/.versions/, with the site chrome overlaid from
+# the working tree (see the versions target). "dev" is special-cased
+# as the site root in the docs templates and here.
 
 VENV    := .venv
 PIP     := $(VENV)/bin/pip
@@ -30,6 +31,12 @@ LANG_NAMES := English,Français
 # subset, e.g. `make pages VERSIONS="v1.0"`. Each tag must contain the
 # docs (docs/, Doxyfile, and the sources Doxygen consumes).
 VERSIONS ?= $(shell git tag --list 'v*' | sort -V)
+
+# The newest released version. Its build is the "latest" docs, so it
+# skips the out-of-date banner (docs/_templates/page.html compares
+# docs_version against docs_latest_version). Falls back to "dev" for
+# repositories without tags yet.
+LATEST_VERSION := $(if $(VERSIONS),$(lastword $(VERSIONS)),dev)
 
 empty :=
 space := $(empty) $(empty)
@@ -49,7 +56,8 @@ VERSIONS_ALT  := $(if $(VERSIONS_CSV),$(subst $(comma),|,$(VERSIONS_CSV)),___)
 LANG_FLAGS := -A docs_languages=$(LANGUAGES_CSV) \
               -A docs_language_names=$(LANG_NAMES)
 DEV_VERSION_FLAGS := -A docs_versions=dev
-ALL_VERSION_FLAGS := -A docs_versions=$(ALL_VERSIONS)
+ALL_VERSION_FLAGS := -A docs_versions=$(ALL_VERSIONS) \
+                    -A docs_latest_version=$(LATEST_VERSION)
 
 .PHONY: deps doxygen gettext update live linkcheck versions pages clean
 
@@ -84,14 +92,23 @@ live: deps doxygen
 	$(LIVE) --port 8000 --watch README.md --watch src -D release=dev $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
 
 # One site per released version, built from that tag's own checkout so
-# each version's docs match its release. Worktrees land in docs/.versions/
-# and are removed again; the per-tag Doxygen XML never touches the
-# working tree's docs/doxygen-xml/.
+# each version's docs content matches its release. Worktrees land in
+# docs/.versions/ and are removed again; the per-tag Doxygen XML never
+# touches the working tree's docs/doxygen-xml/. The site chrome — Doxyfile,
+# conf.py, _templates/, and the switcher JS/CSS, overlaid from the
+# working tree before building (Doxyfile and conf.py travel together:
+# the XML path the former writes is the one the latter reads) — is
+# current, so every version's site (including tags cut before a chrome
+# change) renders the current switcher, banners, and "latest" badge.
 versions: deps
 	@mkdir -p docs/pages
 	@for tag in $(VERSIONS); do \
 		worktree=docs/.versions/$$tag; \
 		git worktree add --detach $$worktree $$tag || continue; \
+		cp -R docs/_templates/. $$worktree/docs/_templates/; \
+		cp docs/conf.py $$worktree/docs/conf.py; \
+		cp Doxyfile $$worktree/Doxyfile; \
+		cp docs/_static/language-switcher.js docs/_static/language-switcher.css $$worktree/docs/_static/; \
 		( cd $$worktree && $(DOXYGEN) Doxyfile ); \
 		$(SPHINX) -b html -D release=$$tag $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag; \
 		for lang in $(filter-out en,$(LANGUAGES)); do \

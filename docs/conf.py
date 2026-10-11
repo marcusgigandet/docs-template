@@ -45,7 +45,9 @@ dev_banner = {
 # Released-version builds show this notice in the announcement bar
 # instead (docs/_templates/page.html): the reader may be on an
 # outdated release, with a link to the same page in the current
-# ("dev") build at the site root. Template strings, not covered by
+# ("dev") build at the site root. The latest git tag
+# (docs_latest_version, set by the Makefile) shows no banner.
+# Template strings, not covered by
 # gettext — one entry per language in docs_languages below.
 # "{version}" is replaced with the version id at render time.
 old_version_banner = {
@@ -76,14 +78,30 @@ switcher_notice = {
     },
 }
 
+# Strings for the version switcher panel
+# (docs/_templates/components/version-switcher.html): the filter box
+# placeholder (shown once there are many versions) and the badge marking
+# the newest release. Not covered by gettext either — one entry per
+# language in docs_languages below.
+version_labels = {
+    "en": {"filter": "Filter versions", "latest": "latest"},
+    "fr": {"filter": "Filtrer les versions", "latest": "dernière"},
+}
+
 html_context = {
     "docs_version": "dev",
     "docs_versions": "dev",
+    # The latest released version (newest git tag), passed by the
+    # Makefile via -A. Its build skips the out-of-date banner; this
+    # default only covers direct sphinx-build runs, which build the
+    # working tree as "dev" and never show it either.
+    "docs_latest_version": "dev",
     "docs_languages": "en,fr",
     "docs_language_names": "English,Français",
     "dev_banner": dev_banner,
     "old_version_banner": old_version_banner,
     "switcher_notice": switcher_notice,
+    "version_labels": version_labels,
     # Project icon in the sidebar (docs/_templates/sidebar/brand.html):
     # a path under docs/, e.g. "_static/icon.svg". Leave None for a
     # text-only brand.

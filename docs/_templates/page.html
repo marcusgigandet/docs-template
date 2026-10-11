@@ -1,4 +1,4 @@
-{# Language and version dropdowns, rendered here so the target URLs can be
+{# Language and version switchers, rendered here so the target URLs can be
    computed from `pagename`. The data comes from html_context in conf.py,
    overridden per build by the Makefile via -A flags: `docs_version` is the
    current build's version id, `docs_versions` all available versions,
@@ -6,15 +6,19 @@
    separated). "dev" is special: it is the working-tree build served at the
    site root, while every other version (git tag) is served from a <tag>/
    subdirectory; English is each version's root, other languages live one
-   level deeper. docs/_static/language-switcher.js pins the widget cluster
-   to the bottom-right corner and handles open/close interactions. #}
+   level deeper. The language menu is rendered below; the version panel
+   lives in docs/_templates/components/version-switcher.html (newest
+   first, filterable, for many versions). docs/_static/language-switcher.js
+   pins the widget cluster to the bottom-right corner and handles
+   open/close interactions. #}
 {% extends "!page.html" %}
 
 {% block announcement %}
   {# Announcement bar: working-tree ("dev") builds carry a notice that
-     the content is unreleased; released builds (git tags) instead
-     link the same page in the current ("dev") documentation at the
-     site root. #}
+     the content is unreleased; released builds (git tags) other than
+     the latest instead link the same page in the current ("dev")
+     documentation at the site root. The latest tag
+     (docs_latest_version) shows no banner. #}
   {# Directory depth of the current page below the site root: the "dev"
      build sits at the root; each released version (git tag) and each
      non-English language adds one level. #}
@@ -28,7 +32,7 @@
     <div class="dev-version-note">
       {{ dev_banner.get(language, dev_banner['en']) }}
     </div>
-  {%- else -%}
+  {%- elif docs_version != docs_latest_version -%}
     {%- set old_banner = old_version_banner.get(language, old_version_banner['en']) -%}
     <div class="old-version-note">
       {{ old_banner.message.replace('{version}', docs_version) }}
@@ -37,7 +41,6 @@
   {%- endif -%}
   {%- set langs = docs_languages.split(',') -%}
   {%- set lang_names = docs_language_names.split(',') -%}
-  {%- set versions = docs_versions.split(',') -%}
   <div class="docs-switchers">
     <div class="docs-switcher">
       <button type="button" class="docs-switcher-toggle"
@@ -67,33 +70,7 @@
         {%- endfor -%}
       </ul>
     </div>
-    {%- if versions|length > 1 -%}
-      <div class="docs-switcher">
-        <button type="button" class="docs-switcher-toggle"
-                aria-haspopup="true" aria-expanded="false" aria-label="Version">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg>
-          <span>{{ docs_version }}</span>
-          <svg class="docs-switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <ul class="docs-switcher-menu" hidden>
-          {%- for v in versions -%}
-            <li>
-              <a class="docs-switcher-item" href="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}{{ pagename }}.html"
-                 data-manifest="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}docs-pages.js"
-                 data-version="{{ v }}"
-                 data-page="{{ lprefix }}{{ pagename }}.html"
-                 data-fallback="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}index.html"
-                 {% if v == docs_version %}aria-current="page"{% endif %}>
-                {{ v }}
-                {%- if v == docs_version -%}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-                {%- endif -%}
-              </a>
-            </li>
-          {%- endfor -%}
-        </ul>
-      </div>
-    {%- endif -%}
+    {% include "components/version-switcher.html" %}
   </div>
 {% endblock announcement %}
 

@@ -14,8 +14,10 @@ make live     # live-rebuild preview at http://localhost:8000
 ```
 
 `make local` builds everything into `pages-local/`; `make pages` builds
-the deployable multi-version site into `pages/`. The Doxygen binary is
-required for the C++ reference (`brew install doxygen` on macOS).
+the deployable multi-version site into `pages/` — released-version sites
+(`pages/<tag>/`) only exist there, so the preview's version switcher
+offers just `dev`. The Doxygen binary is required for the C++ reference
+(`brew install doxygen` on macOS).
 
 ## Configure your project
 

@@ -39,9 +39,14 @@ VERSIONS_CSV  := $(subst $(space),$(comma),$(VERSIONS))
 ALL_VERSIONS  := dev$(if $(VERSIONS_CSV),$(comma)$(VERSIONS_CSV))
 
 # Switcher data injected into every build (docs/_templates/page.html).
-CONTEXT_FLAGS := -A docs_versions=$(ALL_VERSIONS) \
-                 -A docs_languages=$(LANGUAGES_CSV) \
-                 -A docs_language_names=$(LANG_NAMES)
+# The language flags apply everywhere; the version list depends on the
+# target — `local`/`live` build only the working tree, so they advertise
+# just "dev" (linking to a tag from the preview would 404), while
+# `pages`/`versions` build and advertise every released version.
+LANG_FLAGS := -A docs_languages=$(LANGUAGES_CSV) \
+              -A docs_language_names=$(LANG_NAMES)
+DEV_VERSION_FLAGS := -A docs_versions=dev
+ALL_VERSION_FLAGS := -A docs_versions=$(ALL_VERSIONS)
 
 .PHONY: deps doxygen gettext update local live versions pages clean
 
@@ -67,13 +72,13 @@ update: gettext
 	cd docs && ../$(INTL) build
 
 local: deps doxygen
-	$(SPHINX) -b html $(CONTEXT_FLAGS) -A docs_version=dev docs pages-local
+	$(SPHINX) -b html $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local
 	for lang in $(filter-out en,$(LANGUAGES)); do \
-		$(SPHINX) -b html -D language=$$lang $(CONTEXT_FLAGS) -A docs_version=dev docs pages-local/$$lang; \
+		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local/$$lang; \
 	done
 
 live: deps doxygen
-	$(LIVE) --port 8000 --watch README.md --watch src docs pages-local
+	$(LIVE) --port 8000 --watch README.md --watch src $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs pages-local
 
 # One site per released version, built from that tag's own checkout so
 # each version's docs match its release. Worktrees land in .versions/
@@ -85,17 +90,17 @@ versions: deps
 		worktree=.versions/$$tag; \
 		git worktree add --detach $$worktree $$tag || continue; \
 		( cd $$worktree && $(DOXYGEN) Doxyfile ); \
-		$(SPHINX) -b html $(CONTEXT_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag; \
+		$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag; \
 		for lang in $(filter-out en,$(LANGUAGES)); do \
-			$(SPHINX) -b html -D language=$$lang $(CONTEXT_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag/$$lang; \
+			$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs pages/$$tag/$$lang; \
 		done; \
 		git worktree remove --force $$worktree; \
 	done
 
 pages: deps doxygen versions
-	$(SPHINX) -b html $(CONTEXT_FLAGS) -A docs_version=dev docs pages
+	$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs pages
 	for lang in $(filter-out en,$(LANGUAGES)); do \
-		$(SPHINX) -b html -D language=$$lang $(CONTEXT_FLAGS) -A docs_version=dev docs pages/$$lang; \
+		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs pages/$$lang; \
 	done
 
 clean:

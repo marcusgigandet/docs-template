@@ -45,6 +45,10 @@
           {%- set code = langs[i] -%}
           <li>
             <a class="docs-switcher-item" href="{{ rel }}{{ vprefix }}{{ '' if code == 'en' else code ~ '/' }}{{ pagename }}.html"
+               data-manifest="{{ rel }}{{ vprefix }}docs-pages.js"
+               data-version="{{ docs_version }}"
+               data-page="{{ '' if code == 'en' else code ~ '/' }}{{ pagename }}.html"
+               data-fallback="{{ rel }}{{ vprefix }}{{ '' if code == 'en' else code ~ '/' }}index.html"
                lang="{{ code }}"{% if code == language %} aria-current="page"{% endif %}>
               {{ lang_names[i] }}
               {%- if code == language -%}
@@ -67,6 +71,10 @@
           {%- for v in versions -%}
             <li>
               <a class="docs-switcher-item" href="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}{{ pagename }}.html"
+                 data-manifest="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}docs-pages.js"
+                 data-version="{{ v }}"
+                 data-page="{{ lprefix }}{{ pagename }}.html"
+                 data-fallback="{{ rel }}{{ '' if v == 'dev' else v ~ '/' }}{{ lprefix }}index.html"
                  {% if v == docs_version %}aria-current="page"{% endif %}>
                 {{ v }}
                 {%- if v == docs_version -%}
@@ -80,3 +88,32 @@
     {%- endif -%}
   </div>
 {% endblock announcement %}
+
+{% block footer %}
+  {{ super() }}
+  {#- Runtime strings for the missing-page notice
+     (docs/_static/language-switcher.js), selected per build language:
+     gettext does not cover template/JS strings, so the per-language
+     text lives in conf.py (switcher_notice). #}
+  {%- set notice = switcher_notice.get(language, switcher_notice['en']) %}
+  <script>
+    window.docsStrings = {
+      noticeMessage: {{ notice.message | tojson }},
+      noticeHome: {{ notice.home | tojson }},
+      noticeDismiss: {{ notice.dismiss | tojson }}
+    };
+  </script>
+  {#- The 404 page: GitHub Pages serves the root 404.html for any
+     missing path, so the requested URL's version/language are only
+     known client-side. Expose the switcher data to language-switcher.js
+     (which runs after the footer, when this inline script has executed)
+     so it can build targeted fallback links. #}
+  {%- if pagename == '404' %}
+    <script>
+      window.docsMeta = {
+        versions: "{{ docs_versions }}".split(","),
+        languages: "{{ docs_languages }}".split(",")
+      };
+    </script>
+  {%- endif %}
+{% endblock footer %}

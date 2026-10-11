@@ -69,34 +69,55 @@ gettext: deps doxygen
 # strings fall back to English, so partial translations are fine.
 update: gettext
 	$(INTL) update -p docs/gettext -d docs/locales $(addprefix -l ,$(filter-out en,$(LANGUAGES)))
-	cd docs && ../$(INTL) build
+	@cd docs && ../$(INTL) build
 
 live: deps doxygen
-	$(LIVE) --port 8000 --watch README.md --watch src $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
+	$(LIVE) --port 8000 --watch README.md --watch src -D release=dev $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
 
 # One site per released version, built from that tag's own checkout so
 # each version's docs match its release. Worktrees land in docs/.versions/
 # and are removed again; the per-tag Doxygen XML never touches the
 # working tree's docs/doxygen-xml/.
 versions: deps
-	mkdir -p docs/pages
-	for tag in $(VERSIONS); do \
+	@mkdir -p docs/pages
+	@for tag in $(VERSIONS); do \
 		worktree=docs/.versions/$$tag; \
 		git worktree add --detach $$worktree $$tag || continue; \
 		( cd $$worktree && $(DOXYGEN) Doxyfile ); \
-		$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag; \
+		$(SPHINX) -b html -D release=$$tag $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag; \
 		for lang in $(filter-out en,$(LANGUAGES)); do \
-			$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag/$$lang; \
+			$(SPHINX) -b html -D language=$$lang -D release=$$tag $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs docs/pages/$$tag/$$lang; \
 		done; \
 		git worktree remove --force $$worktree; \
 	done
 
 pages: deps doxygen versions
-	$(SPHINX) -b html $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages
-	for lang in $(filter-out en,$(LANGUAGES)); do \
-		$(SPHINX) -b html -D language=$$lang $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages/$$lang; \
+	$(SPHINX) -b html -D release=dev $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages
+	@for lang in $(filter-out en,$(LANGUAGES)); do \
+		$(SPHINX) -b html -D language=$$lang -D release=dev $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=dev docs docs/pages/$$lang; \
+	done
+
+# Page manifests for the switcher's existence check (see
+# docs/_static/language-switcher.js): one docs-pages.js per version
+# root, listing every built page relative to that root, all
+# languages. "dev" is the site root; language subdirectories of the
+# dev site are skipped (their pages belong to the dev manifest).
+	@for site in docs/pages docs/pages/*; do \
+		[ -f "$$site/index.html" ] || continue; \
+		ver=$${site#docs/pages}; ver=$${ver#/}; \
+		case " $(LANGUAGES) " in *" $$ver "*) continue;; esac; \
+		ver=$${ver:-dev}; \
+		{ echo 'window.docsPages = window.docsPages || {};'; \
+		  printf 'window.docsPages["%s"] = [' "$$ver"; \
+		  { find "$$site" -maxdepth 1 -name '*.html'; \
+		    for lang in $(filter-out en,$(LANGUAGES)); do \
+		      find "$$site/$$lang" -name '*.html'; \
+		    done; \
+		  } | sed -e "s|^$$site/|  \"|" -e 's|$$|",|'; \
+		  echo '];'; \
+		} > "$$site/docs-pages.js"; \
 	done
 
 clean:
-	rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/.versions
+	@rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/.versions
 	git worktree prune

@@ -8,7 +8,11 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "Project Name"
 author = "Author Name (s)"
 copyright = "Copyright"
-release = "0.1.0"
+# Version shown in page titles. The Makefile overrides this per build
+# with -D: the released git tag for each version site, "dev" for
+# working-tree builds. This default covers direct sphinx-build /
+# sphinx-autobuild runs, which build the working tree.
+release = "dev"
 
 # --- Multilingual support (gettext via sphinx-intl) ---
 # Source strings are English. `make gettext` extracts them into
@@ -38,12 +42,34 @@ dev_banner = {
     "fr": "Version de développement — construite depuis l'arborescence de travail ; le contenu peut changer.",
 }
 
+# Notice shown by the version switcher when the target page does not
+# exist in the target version (docs/_static/language-switcher.js). Not
+# covered by gettext either; "{version}" is replaced with the target
+# version at runtime.
+switcher_notice = {
+    "en": {
+        "message": "This page does not exist in the {version} version. It may have been added after, or removed before, that release.",
+        "home": "Go to the {version} home page",
+        "dismiss": "Dismiss",
+    },
+    "fr": {
+        "message": "Cette page n'existe pas dans la version {version}. Elle a peut-être été ajoutée après, ou supprimée avant cette version.",
+        "home": "Aller à la page d'accueil de {version}",
+        "dismiss": "Fermer",
+    },
+}
+
 html_context = {
     "docs_version": "dev",
     "docs_versions": "dev",
     "docs_languages": "en,fr",
     "docs_language_names": "English,Français",
     "dev_banner": dev_banner,
+    "switcher_notice": switcher_notice,
+    # Project icon in the sidebar (docs/_templates/sidebar/brand.html):
+    # a path under docs/, e.g. "_static/icon.svg". Leave None for a
+    # text-only brand.
+    "sidebar_icon": None,
 }
 
 extensions = [
@@ -97,7 +123,9 @@ myst_fence_as_directive = ["mermaid"]
 mermaid_version = "12.1.0"
 
 # Branding: drop a logo and favicon into docs/_static/ and uncomment.
-# The logo appears in the sidebar above the navigation.
+# html_logo appears centered above the sidebar navigation; for a small
+# icon next to the project name in the sidebar instead, set
+# "sidebar_icon" in html_context above.
 # html_logo = "_static/logo.svg"
 # html_favicon = "_static/favicon.png"
 

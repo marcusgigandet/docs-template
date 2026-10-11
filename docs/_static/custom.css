@@ -8,6 +8,20 @@ nav.contents {
   display: none;
 }
 
+/* Sidebar brand: optional project icon next to the name (see
+   docs/_templates/sidebar/brand.html and sidebar_icon in conf.py). */
+.sidebar-brand-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-brand-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+}
+
 /* Branding: uncomment and adjust to match your project's colors. These
    are Furo's accent variables (links, active sidebar items, switcher
    highlights); see Furo's documentation for the full variable list.

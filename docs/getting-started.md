@@ -26,3 +26,17 @@ How to obtain, build, and run the project.
 
 <!-- How to install the build artifacts (or flash them, if this is
      firmware). -->
+
+## Example
+
+<!-- A small code example. Every code block on the site carries a
+     copy-to-clipboard button in its top-right corner
+     (sphinx-copybutton, enabled in docs/conf.py) — this one included. -->
+
+```cpp
+#include <example.hpp>
+
+int main() {
+    return example::add(20, 22);  // 42
+}
+```

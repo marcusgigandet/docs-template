@@ -1,11 +1,6 @@
-# Documentation site (Sphinx). Build targets (see Makefile):
-#   make deps     - create .venv and install these requirements
-#   make gettext  - extract translatable strings into docs/gettext/
-#   make update   - refresh translation files under docs/locales/
-#   make live     - live-rebuild preview at http://localhost:8000
-#   make linkcheck- check external links (non-zero exit on broken ones)
-#   make pages    - build all versions/languages into pages/ for
-#                   deployment, plus sitemap.xml and robots.txt
+# Documentation site build dependencies (see Makefile for the targets:
+# deps, gettext, update, live, linkcheck, versions, pages).
+# The C++ reference also requires the Doxygen binary (brew install doxygen).
 
 sphinx
 myst-parser
@@ -17,6 +12,3 @@ sphinx-autobuild
 sphinx-last-updated-by-git
 sphinx-copybutton
 sphinx-intl
-
-# C++ docstrings also require the Doxygen binary: brew install doxygen
-# JavaScript docstrings are npm-based, not pip: see docs/code-reference.md

@@ -8,63 +8,60 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "Project Name"
 author = "Author Name (s)"
 copyright = "Copyright"
-# Version shown in page titles. The Makefile overrides this per build
-# with -D: the released git tag for each version site, "dev" for
-# working-tree builds. This default covers direct sphinx-build /
-# sphinx-autobuild runs, which build the working tree.
+# The Makefile overrides this per build with -D: the released git tag
+# for each version site, "dev" for working-tree builds.
 release = "dev"
 
 # --- Multilingual support (gettext via sphinx-intl) ---
-# Source strings are English. `make gettext` extracts them into
-# docs/gettext/*.pot, `make update` refreshes docs/locales/<lang>/LC_MESSAGES
-# .po files, and the Makefile builds one site per language (English at the
-# root, other languages in <lang>/ subdirectories). Messages without a
-# translation fall back to the English source — the Exhale-generated
-# docs/api/ pages need no manual translation.
+# Source strings are English; `make update` refreshes .po files under
+# docs/locales/. Untranslated strings fall back to English.
 language = "en"
 locale_dirs = ["locales/"]
-# One .pot/.po per source page instead of a single combined file.
 gettext_compact = False
 
-# --- Site switcher data (language + version dropdowns) ---
-# Comma-separated values consumed by docs/_templates/page.html. The
-# Makefile overrides these per build with -A flags (see its build loops);
-# these defaults only apply to direct sphinx-build / sphinx-autobuild
-# runs (e.g. `make live`), which build the working tree as version "dev".
-# Site layout: the latest release (newest git tag) is the site root —
-# the default documentation; "dev" (the working-tree build) and every
-# older tag are served from their own <version>/ subdirectories.
-# Working-tree ("dev") builds show this notice in the announcement bar
-# (see docs/_templates/page.html). Sphinx's gettext pipeline only covers
-# document sources, not templates, so the per-language text lives here:
-# add one entry per language in docs_languages below.
-dev_banner = {
-    "en": "Development version — built from the working tree; content may change.",
-    "fr": "Version de développement — construite depuis l'arborescence de travail ; le contenu peut changer.",
-}
+# --- Site switcher data ---
+# Consumed by docs/_templates/page.html; overridden per build by the
+# Makefile via -A. Template strings are not covered by gettext, so the
+# per-language text lives here: add one entry per language in
+# docs_languages below. Site layout: the newest git tag is the site
+# root (the default documentation); "dev" and older tags are served
+# from their own <version>/ subdirectories.
 
-# Builds of releases older than the latest show this notice in the
-# announcement bar instead (docs/_templates/page.html), with a link to
-# the same page in the latest release at the site root
-# (docs_root_version). The latest release (docs_latest_version, set
-# by the Makefile) shows no banner. Template strings, not covered by
-# gettext — one entry per language in docs_languages below.
-# "{version}" is replaced with the version id at render time.
-old_version_banner = {
+# Version notice, shown as a brief toast (docs/_templates/page.html
+# renders the card; docs/_static/language-switcher.js shows it and
+# auto-hides it) when the version being viewed is not the latest
+# release: "dev" on working-tree builds, "old" on releases older than
+# the latest, linking the same page in the latest release at the site
+# root. The dismissal lasts for the current stay in a version;
+# selecting the version again via the switcher re-shows it.
+# "{version}" is replaced at render time.
+version_notice = {
     "en": {
-        "message": "You are reading the documentation for {version}, which may be out of date.",
-        "latest": "See the current version",
+        "dev": {
+            "title": "Development version",
+            "message": "Built from the working tree; content may change.",
+        },
+        "old": {
+            "title": "This may be an old version of this documentation",
+            "message": "You are reading the documentation for {version}, which may be out of date.",
+            "latest": "See the current version",
+        },
     },
     "fr": {
-        "message": "Vous lisez la documentation de la version {version}, qui peut être obsolète.",
-        "latest": "Voir la version actuelle",
+        "dev": {
+            "title": "Version de développement",
+            "message": "Construite depuis l'arborescence de travail ; le contenu peut changer.",
+        },
+        "old": {
+            "title": "Cette documentation peut être une ancienne version",
+            "message": "Vous lisez la documentation de la version {version}, qui peut être obsolète.",
+            "latest": "Voir la version actuelle",
+        },
     },
 }
 
-# Notice shown by the version switcher when the target page does not
-# exist in the target version (docs/_static/language-switcher.js). Not
-# covered by gettext either; "{version}" is replaced with the target
-# version at runtime.
+# Shown by the version switcher when the target page does not exist in
+# the target version. "{version}" is replaced at runtime.
 switcher_notice = {
     "en": {
         "message": "This page does not exist in the {version} version. It may have been added after, or removed before, that release.",
@@ -78,11 +75,8 @@ switcher_notice = {
     },
 }
 
-# Strings for the version switcher panel
-# (docs/_templates/components/version-switcher.html): the filter box
-# placeholder (shown once there are many versions) and the badge marking
-# the newest release. Not covered by gettext either — one entry per
-# language in docs_languages below.
+# Version switcher panel: filter box placeholder and the badge marking
+# the newest release.
 version_labels = {
     "en": {"filter": "Filter versions", "latest": "latest"},
     "fr": {"filter": "Filtrer les versions", "latest": "dernière"},
@@ -91,29 +85,17 @@ version_labels = {
 html_context = {
     "docs_version": "dev",
     "docs_versions": "dev",
-    # The latest released version (newest git tag), passed by the
-    # Makefile via -A. Its build skips the out-of-date banner; this
-    # default only covers direct sphinx-build runs, which build the
-    # working tree as "dev" and never show it either.
+    # Passed by the Makefile via -A; "dev" here only covers direct
+    # sphinx-build / sphinx-autobuild runs.
     "docs_latest_version": "dev",
-    # The version served at the site root, passed by the Makefile via
-    # -A: the latest git tag for full builds, so it is the default
-    # documentation. This default ("dev") covers direct sphinx-build /
-    # sphinx-autobuild runs (e.g. `make live`), which serve the
-    # working tree at the preview root. The templates use it instead
-    # of special-casing "dev" for link prefixes and directory depth,
-    # and the html-page-context hook below keys canonical URLs and
-    # robots indexing off it.
     "docs_root_version": "dev",
     "docs_languages": "en,fr",
     "docs_language_names": "English,Français",
-    "dev_banner": dev_banner,
-    "old_version_banner": old_version_banner,
+    "version_notice": version_notice,
     "switcher_notice": switcher_notice,
     "version_labels": version_labels,
-    # Project icon in the sidebar (docs/_templates/sidebar/brand.html):
-    # a path under docs/, e.g. "_static/icon.svg". Leave None for a
-    # text-only brand.
+    # Optional project icon in the sidebar: a path under docs/, e.g.
+    # "_static/icon.svg". Leave None for a text-only brand.
     "sidebar_icon": None,
 }
 
@@ -129,23 +111,16 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# "Last updated" in the page footer: the date of the last commit that
-# touched that page's source file, from git history.
 html_last_updated_fmt = "%Y-%m-%d"
 git_last_updated_timezone = "UTC"
 
-# C++ API reference. The Doxygen XML in doxygen-xml/ (next to this file)
-# is generated by `make doxygen` (see Doxyfile at the repo root, which
-# points Doxygen at the project's sources).
+# C++ API reference: Doxygen XML from `make doxygen`, consumed by
+# Breathe; Exhale regenerates docs/api/ from it on every build.
 breathe_projects = {"myproject": os.path.abspath("doxygen-xml")}
 breathe_default_project = "myproject"
-# Breathe skips members defined in implementation files (.cpp) by
-# default. Empty the list so {doxygenfunction} finds definitions in .cpp
-# files too; harmless for header-only projects.
+# Also find definitions in .cpp files (Breathe skips them by default).
 breathe_implementation_filename_extensions = []
 
-# Exhale auto-generates the full C++ reference (docs/api/) from the Doxygen
-# XML on every build — no per-function directives to maintain.
 exhale_args = {
     "containmentFolder": "./api",
     "rootFileName": "libraryroot.rst",
@@ -161,43 +136,32 @@ breathe_domain_by_extension = {
     ".cppm": ".cpp",
 }
 
-# Treat ```mermaid fences in Markdown as the mermaid directive, so plain
-# .md pages with mermaid diagrams work unmodified.
+# Treat ```mermaid fences in Markdown as the mermaid directive.
 myst_fence_as_directive = ["mermaid"]
 
 mermaid_version = "12.1.0"
 
 # Branding: drop a logo and favicon into docs/_static/ and uncomment.
-# html_logo appears centered above the sidebar navigation; for a small
-# icon next to the project name in the sidebar instead, set
-# "sidebar_icon" in html_context above.
 # html_logo = "_static/logo.svg"
 # html_favicon = "_static/favicon.png"
 
 html_theme = "furo"
-# Public URL of the deployed site (GitHub Pages), used for the canonical
-# URL of built pages (see the html-page-context hook at the bottom of
-# this file). Set to https://<user>.github.io/<repo>/.
+# Public URL of the deployed site, used for canonical page URLs.
+# Set to https://<user>.github.io/<repo>/.
 html_baseurl = "https://example.github.io/project/"
 templates_path = ["_templates"]
 html_static_path = ["_static"]
-# Generated output lives inside the source tree (docs/pages/,
-# docs/pages-local/, docs/gettext/), and `make versions` checks each
-# git tag out into docs/.versions/ while building it. Keep all of it
-# out of the document set — Sphinx otherwise re-discovers built files
-# (e.g. copied LICENSE.md assets) on the next build.
+# Keep build output out of the document set.
 exclude_patterns = ["pages/*", "pages-local/*", ".versions/*", "linkcheck/*"]
 html_css_files = ["language-switcher.css", "custom.css"]
 html_js_files = ["language-switcher.js"]
 
-# Non-empty so Furo renders the announcement bar that hosts the language
-# dropdown markup; language-switcher.js then moves the dropdown into the
-# page header.
 html_theme_options = {
+    # Non-empty so the announcement bar hosts the switcher markup;
+    # language-switcher.js moves the widgets to the page corner.
     "announcement": "Language switcher",
-    # "Edit this page" / "view source" icons in the page header: set to
-    # your repository and default branch. Pages generated by Exhale
-    # (api/) hide the icons via docs/_templates/components/.
+    # "Edit this page" / "view source" header icons (hidden on the
+    # Exhale-generated api/ pages via docs/_templates/components/).
     "source_repository": "https://github.com/example/project",
     "source_branch": "main",
     "source_directory": "docs",
@@ -221,19 +185,34 @@ html_theme_options = {
                 '"/></svg>'
             ),
         },
+        # Optional repository-stat badges (stars, forks, issues — the
+        # shields.io README badges, rendered at view time). Off by
+        # default; uncomment an entry to enable. Set the owner/repo in
+        # the URL. The inline style overrides Furo's footer-icon rule
+        # (.bottom-of-page .icons img { height: 1em; width: 1em }),
+        # which would otherwise squash the 20px-tall badges.
+        # {
+        #     "name": "GitHub stars",
+        #     "url": "https://github.com/example/project/stargazers",
+        #     "html": (
+        #         '<img alt="GitHub stars" loading="lazy" '
+        #         'style="width: auto; height: 20px" '
+        #         'src="https://img.shields.io/github/stars/'
+        #         'example/project.svg?style=flat-square">'
+        #     ),
+        # },
     ],
 }
 
 def _page_meta(app, pagename, templatename, context, doctree):
+    # Canonical URL and robots handling: the root version (the latest
+    # release) serves at the site root and stays indexable; every other
+    # version ("dev", older tags) serves from its own subdirectory and
+    # is noindex.
     version = context.get("docs_version", "dev")
     root = context.get("docs_root_version", "dev")
     language = app.config.language or "en"
 
-    # The root version (latest release) serves its pages at the site
-    # root; every other version ("dev", older tags) from its own
-    # subdirectory. Only the root version's pages are indexable — it
-    # is the default documentation; the others may duplicate or
-    # trail it.
     if app.config.html_baseurl:
         prefix = "" if version == root else f"{version}/"
 

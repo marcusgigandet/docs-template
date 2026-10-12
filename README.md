@@ -15,9 +15,13 @@ make live     # live-rebuild preview at http://localhost:8000
 
 `make live` serves a live-rebuild preview at `http://localhost:8000`
 (built into `docs/pages-local/`); `make pages` builds the deployable
-multi-version site into `docs/pages/` — released-version sites
-(`docs/pages/<tag>/`) only exist there, so the preview's version switcher
-offers just `dev`. The Doxygen binary is required for the C++ reference
+multi-version site into `docs/pages/` — the newest released version
+serves as the site root (the default documentation), each older tag
+from `docs/pages/<tag>/`, and the working-tree ("dev") build from
+`docs/pages/dev/`. `make local` builds just the current checkout's
+site (the tag HEAD is on, or the working tree as "dev") into
+`docs/pages-local/`, without the multi-version chrome — use `make
+pages` for that. The Doxygen binary is required for the C++ reference
 (`brew install doxygen` on macOS).
 
 The switcher checks its target before navigating: `make pages` writes a
@@ -25,8 +29,9 @@ The switcher checks its target before navigating: `make pages` writes a
 switching to a version that lacks the current page shows a notice
 instead of navigating. `make pages` also writes `sitemap.xml` and
 `robots.txt` at the site root, covering the indexable pages only — the
-current-version build and its translations (released versions are
-robots-noindex'd; see the `html-page-context` hook in `docs/conf.py`).
+latest release's pages and their translations (the "dev" build and
+older released versions are robots-noindex'd; see the
+`html-page-context` hook in `docs/conf.py`).
 
 `make linkcheck` checks external links and exits non-zero on broken
 ones; a weekly scheduled workflow (`.github/workflows/docs-linkcheck.yml`)
@@ -39,17 +44,20 @@ Work through this checklist after cloning from the template:
 1. **Project identity** — set `project`, `author`, and `copyright` in
    `docs/conf.py`. The version shown in page titles is derived from git
    tags by the `Makefile`: released sites show their tag, working-tree
-   builds show `dev`. Released pages also show a banner linking the
-   same page in the current version (`old_version_banner` in
-   `docs/conf.py`).
+   builds show `dev`. When the version being viewed is not the latest
+   release, a brief toast (`version_notice` in `docs/conf.py`) pops up
+   linking the same page in the latest release at the site root; the
+   latest release shows none.
 2. **Site URL** — set `html_baseurl` in `docs/conf.py` to your deployed
    site (for GitHub Pages: `https://<user>.github.io/<repo>/`), and the
    `source_repository` / `footer_icons` URLs in `docs/conf.py` to your
    repository — they drive the header "edit this page" icon and the
    footer link. Each page's canonical URL is derived from
-   `html_baseurl` plus the build's version and language, and released
-   versions get `<meta name="robots" content="noindex">`, so only the
-   working-tree build at the site root appears in search results. The
+   `html_baseurl` plus the build's version and language, and every
+   build other than the latest release (the site root) — the "dev"
+   build and older tags — gets
+   `<meta name="robots" content="noindex">`, so only the latest
+   release's pages appear in search results. The
    404 page is never indexed — it is served for every unknown path, so
    it carries no canonical URL either — and search pages are left
    alone because Sphinx already marks them noindex. See the
@@ -64,7 +72,8 @@ Work through this checklist after cloning from the template:
    build; see `docs/code-reference.md`.
 5. **Languages** — edit `LANGUAGES` and `LANG_NAMES` in the `Makefile`,
    the `docs_languages` / `docs_language_names` defaults and the
-   `dev_banner` / `old_version_banner` / `switcher_notice` translations
+   `dev_banner` / `old_version_banner` / `switcher_notice` /
+   `version_labels` translations
    in `docs/conf.py`,
    then run `make update` to generate `.po` files under
    `docs/locales/` and translate them. English needs no `.po` files;

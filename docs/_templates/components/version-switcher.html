@@ -1,17 +1,8 @@
-{# Version switcher panel (included from docs/_templates/page.html;
-   data comes from html_context in docs/conf.py, overridden per build by
-   the Makefile via -A flags). Versions are listed newest-first — "dev"
-   (the working-tree build, served from dev/) first, then every released
-   version newest to oldest — so the most recent entries stay near the
-   top however many versions exist. The current version carries a
-   checkmark; the latest release (docs_latest_version) a "latest" badge
-   and lives at the site root (docs_root_version). Past a handful of
-   versions (more than 8) the panel becomes scrollable with a filter
-   box: docs/_static/language-switcher.js filters entries on input and
-   centers the current version on open. The filter and badge strings
-   are not covered by gettext (template strings) — one entry per
-   language in docs_languages, configured as version_labels
-   in docs/conf.py. #}
+{# Version switcher panel (included from page.html; data from
+   html_context, overridden per build by the Makefile). Listed newest
+   first, filterable past 8 versions; the current version carries a
+   checkmark and the latest release (docs_latest_version) a badge — it
+   also serves at the site root (docs_root_version). #}
 {%- set versions = docs_versions.split(',') -%}
 {%- set labels = version_labels.get(language, version_labels['en']) -%}
 {%- if versions|length > 1 -%}

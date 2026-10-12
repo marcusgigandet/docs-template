@@ -1,7 +1,5 @@
-/* Language and version dropdowns (docs/_templates/page.html renders the
-   widgets; docs/_static/language-switcher.js pins them to <body> and
-   toggles the menus). Pinned to the bottom-right corner of the viewport;
-   the menus open upward from the toggle. */
+/* Language and version switcher widgets, pinned to the bottom-right
+   corner of the viewport; the menus open upward from the toggle. */
 
 .docs-switchers {
   position: fixed;
@@ -91,10 +89,9 @@
   font-weight: 600;
 }
 
-/* Notice shown when a switcher's target page does not exist in the
-   target version (docs/_static/language-switcher.js). A centered toast
-   along the bottom edge, clear of the pinned switcher cluster; on
-   narrow screens it sits above the cluster instead. */
+/* Missing-page notice (docs/_static/language-switcher.js): a centered
+   toast along the bottom edge, clear of the switcher cluster; on narrow
+   screens it sits above the cluster instead. */
 .docs-switcher-notice {
   position: fixed;
   left: 50%;
@@ -189,10 +186,9 @@
   height: 1em;
 }
 
-/* Version panel (docs/_templates/components/version-switcher.html):
-   unlike the language menu it may hold many entries, so it scrolls
-   (listed newest-first) and, past a handful of versions, carries a
-   filter box. */
+/* Version panel: unlike the language menu it may hold many entries, so
+   it scrolls (listed newest-first) and, past a handful of versions,
+   carries a filter box. */
 .docs-switcher-menu--version {
   min-width: 11rem;
   max-height: min(18rem, 60vh);

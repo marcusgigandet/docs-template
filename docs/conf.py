@@ -114,9 +114,10 @@ extensions = [
 html_last_updated_fmt = "%Y-%m-%d"
 git_last_updated_timezone = "UTC"
 
-# C++ API reference: Doxygen XML from `make doxygen`, consumed by
-# Breathe; Exhale regenerates docs/api/ from it on every build.
-breathe_projects = {"myproject": os.path.abspath("doxygen-xml")}
+# C++ API reference: Doxygen XML from `make doxygen` (out/doxygen-xml,
+# written by the Doxyfile at the repo root), consumed by Breathe;
+# Exhale regenerates docs/api/ from it on every build.
+breathe_projects = {"myproject": os.path.abspath("../out/doxygen-xml")}
 breathe_default_project = "myproject"
 # Also find definitions in .cpp files (Breathe skips them by default).
 breathe_implementation_filename_extensions = []
@@ -151,8 +152,6 @@ html_theme = "furo"
 html_baseurl = "https://example.github.io/project/"
 templates_path = ["_templates"]
 html_static_path = ["_static"]
-# Keep build output out of the document set.
-exclude_patterns = ["pages/*", "pages-local/*", ".versions/*", "linkcheck/*"]
 html_css_files = ["language-switcher.css", "custom.css"]
 html_js_files = ["language-switcher.js"]
 

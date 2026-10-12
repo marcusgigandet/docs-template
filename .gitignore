@@ -31,7 +31,6 @@ bin/
 obj/
 lib/
 dist/
-api/
 build/
 
 # --- Package Managers ---
@@ -57,13 +56,7 @@ vcpkg_installed/
 coverage/
 lcov-report/
 
-# --- Documentation (generated output lives under docs/) ---
-_build/
-docs/doxygen-xml/
-docs/api/
-docs/gettext/
-docs/linkcheck/
-docs/pages/
-docs/pages-local/
-docs/.versions/
+# --- Documentation build output ---
+/out/
+/docs/api/
 *.mo

@@ -1,7 +1,7 @@
 # Documentation site build. Site layout: the newest git tag is the
 # site root (the default documentation), older tags under
-# docs/pages/<tag>/, the working-tree ("dev") build under
-# docs/pages/dev/, one <lang>/ subdirectory per non-English language.
+# out/pages/<tag>/, the working-tree ("dev") build under
+# out/pages/dev/, one <lang>/ subdirectory per non-English language.
 # See README.md for the checklist to adapt the template to a project.
 
 VENV    := .venv
@@ -22,7 +22,7 @@ VERSIONS ?= $(shell git tag --list 'v*' | sort -V)
 # The newest tag builds into the site root and carries the "latest"
 # badge. Without tags, "dev" serves at the site root.
 LATEST_VERSION := $(if $(VERSIONS),$(lastword $(VERSIONS)),dev)
-DEV_OUTDIR := docs/pages$(if $(filter dev,$(LATEST_VERSION)),,/dev)
+DEV_OUTDIR := out/pages$(if $(filter dev,$(LATEST_VERSION)),,/dev)
 
 # The version of the current checkout: the git tag HEAD is on, "dev"
 # otherwise (HEAD not exactly at a tag). Uncommitted changes are
@@ -54,29 +54,30 @@ $(SPHINX):
 	@$(PIP) install -r requirements-docs.txt
 
 doxygen:
+	@mkdir -p out
 	@$(DOXYGEN) Doxyfile
 
 gettext: deps doxygen
-	@$(SPHINX) -b gettext docs docs/gettext
+	@$(SPHINX) -b gettext docs out/gettext
 
 # Refresh .po files under docs/locales/ and compile .mo catalogs.
 # The .mo files are git-ignored build artifacts: every HTML build
 # compiles them itself (live, versions, pages), so fresh checkouts
 # and CI never miss translations.
 update: gettext
-	@$(INTL) update -p docs/gettext -d docs/locales $(addprefix -l ,$(filter-out en,$(LANGUAGES)))
+	@$(INTL) update -p out/gettext -d docs/locales $(addprefix -l ,$(filter-out en,$(LANGUAGES)))
 	@cd docs && ../$(INTL) build
 
 # Exits non-zero on broken external links; CI runs this weekly.
 linkcheck: deps doxygen
-	@$(SPHINX) -b linkcheck docs docs/linkcheck
+	@$(SPHINX) -b linkcheck docs out/linkcheck
 
 live: deps doxygen
 	@cd docs && ../$(INTL) build
-	$(LIVE) --port 8000 --watch README.md --watch src -D release=dev $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs docs/pages-local
+	$(LIVE) --port 8000 --watch README.md --watch src -D release=dev $(LANG_FLAGS) $(DEV_VERSION_FLAGS) -A docs_version=dev docs out/pages-local
 
 # Build the current checkout's site (LOCAL_VERSION) into
-# docs/pages-local/, as that version deploys: single version, so no
+# out/pages-local/, as that version deploys: single version, so no
 # version panel. docs_latest_version is the repository's real newest
 # tag (an older checkout does not claim to be latest); docs_root_version
 # is the local version itself, since the local build serves it at its
@@ -87,12 +88,12 @@ local: deps doxygen
 	@$(SPHINX) -b html -D release=$(LOCAL_VERSION) $(LANG_FLAGS) \
 	   -A docs_versions=$(LOCAL_VERSION) -A docs_latest_version=$(LATEST_VERSION) \
 	   -A docs_root_version=$(LOCAL_VERSION) -A docs_version=$(LOCAL_VERSION) \
-	   docs docs/pages-local
+	   docs out/pages-local
 	@for lang in $(filter-out en,$(LANGUAGES)); do \
 		$(SPHINX) -b html -D language=$$lang -D release=$(LOCAL_VERSION) $(LANG_FLAGS) \
 		   -A docs_versions=$(LOCAL_VERSION) -A docs_latest_version=$(LATEST_VERSION) \
 		   -A docs_root_version=$(LOCAL_VERSION) -A docs_version=$(LOCAL_VERSION) \
-		   docs docs/pages-local/$$lang; \
+		   docs out/pages-local/$$lang; \
 	done
 
 # One site per released version, built from the tag's own content
@@ -101,17 +102,18 @@ local: deps doxygen
 # switcher JS/CSS) overlaid from the working tree so every version
 # renders the current chrome. The newest tag builds into the site root.
 versions: deps
-	@mkdir -p docs/pages
+	@mkdir -p out/pages
 	@for tag in $(VERSIONS); do \
-		worktree=docs/.versions/$$tag; \
+		worktree=out/versions/$$tag; \
 		git worktree add --detach $$worktree $$tag || continue; \
-		outdir=docs/pages/$$tag; \
-		if [ "$$tag" = "$(LATEST_VERSION)" ]; then outdir=docs/pages; fi; \
+		outdir=out/pages/$$tag; \
+		if [ "$$tag" = "$(LATEST_VERSION)" ]; then outdir=out/pages; fi; \
 		cp -R docs/_templates/. $$worktree/docs/_templates/; \
 		cp docs/conf.py docs/404.md $$worktree/docs/; \
 		cp Doxyfile $$worktree/Doxyfile; \
 		cp docs/_static/language-switcher.js docs/_static/language-switcher.css \
 		   docs/_static/custom.css $$worktree/docs/_static/; \
+		mkdir -p $$worktree/out; \
 		( cd $$worktree/docs && ../../../../$(INTL) build ); \
 		( cd $$worktree && $(DOXYGEN) Doxyfile ); \
 		$(SPHINX) -b html -D release=$$tag $(LANG_FLAGS) $(ALL_VERSION_FLAGS) -A docs_version=$$tag $$worktree/docs $$outdir; \
@@ -129,9 +131,9 @@ pages: deps doxygen versions
 	done
 # Drop the sites of versions that no longer exist (deleted or renamed
 # tags), so no orphaned version gets deployed.
-	@for site in docs/pages/*; do \
+	@for site in out/pages/*; do \
 		[ -f "$$site/index.html" ] || continue; \
-		ver=$${site#docs/pages/}; \
+		ver=$${site#out/pages/}; \
 		case ",$(ALL_VERSIONS)," in *",$$ver,"*) continue;; esac; \
 		case " $(LANGUAGES) " in *" $$ver "*) continue;; esac; \
 		echo "Removing stale version directory: $$site"; \
@@ -140,9 +142,9 @@ pages: deps doxygen versions
 # Page manifest per version (docs-pages.js): the version switcher
 # checks that a target page exists in the target version before
 # navigating (docs/_static/language-switcher.js).
-	@for site in docs/pages docs/pages/*; do \
+	@for site in out/pages out/pages/*; do \
 		[ -f "$$site/index.html" ] || continue; \
-		ver=$${site#docs/pages}; ver=$${ver#/}; \
+		ver=$${site#out/pages}; ver=$${ver#/}; \
 		case " $(LANGUAGES) " in *" $$ver "*) continue;; esac; \
 		ver=$${ver:-$(LATEST_VERSION)}; \
 		{ echo 'window.docsPages = window.docsPages || {};'; \
@@ -159,16 +161,17 @@ pages: deps doxygen versions
 	@base=`$(VENV)/bin/python -c "import sys; sys.path.insert(0, 'docs'); import conf; print(conf.html_baseurl.rstrip('/'))"`; \
 	{ echo '<?xml version="1.0" encoding="UTF-8"?>'; \
 	  echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'; \
-	  find docs/pages -name '*.html' \
-	    | grep -vE "^docs/pages/($(VERSIONS_ALT))/" \
+	  find out/pages -name '*.html' \
+	    | grep -vE "^out/pages/($(VERSIONS_ALT))/" \
 	    | grep -vE "/(404|search)\.html$$" \
 	    | sort \
-	    | sed -e "s|^docs/pages/|  <url><loc>$$base/|" -e 's|$$|</loc></url>|'; \
+	    | sed -e "s|^out/pages/|  <url><loc>$$base/|" -e 's|$$|</loc></url>|'; \
 	  echo '</urlset>'; \
-	} > docs/pages/sitemap.xml; \
-	printf 'User-agent: *\nSitemap: %s/sitemap.xml\n' "$$base" > docs/pages/robots.txt
-	@for tag in $(VERSIONS); do rm -f docs/pages/$$tag/sitemap.xml docs/pages/$$tag/robots.txt; done
+	} > out/pages/sitemap.xml; \
+	printf 'User-agent: *\nSitemap: %s/sitemap.xml\n' "$$base" > out/pages/robots.txt
+	@for tag in $(VERSIONS); do rm -f out/pages/$$tag/sitemap.xml out/pages/$$tag/robots.txt; done
 
 clean:
-	@rm -rf docs/pages-local docs/pages doxygen-xml docs/doxygen-xml docs/api docs/gettext docs/linkcheck docs/.versions
+	@rm -rf out docs/api
+	@rm -rf doxygen-xml docs/doxygen-xml docs/pages docs/pages-local docs/gettext docs/linkcheck docs/.versions
 	@git worktree prune

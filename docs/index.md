@@ -3,9 +3,22 @@
 
 ```{toctree}
 :hidden:
+:caption: Guides
 
-getting-started
-architecture
-changelog
-code-reference
+guides/getting-started
+guides/architecture
+```
+
+```{toctree}
+:hidden:
+:caption: Reference
+
+reference/code-reference
+```
+
+```{toctree}
+:hidden:
+:caption: About
+
+about/changelog
 ```

@@ -1,7 +1,3 @@
-# Documentation site build dependencies (see Makefile for the targets:
-# deps, gettext, update, live, linkcheck, versions, pages).
-# The C++ reference also requires the Doxygen binary (brew install doxygen).
-
 sphinx
 myst-parser
 furo
